@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <cstring>
 
 #include <jack/jack.h>
 
@@ -27,16 +28,15 @@ int main() {
 
     jack_set_process_callback (client, process, NULL);
 
+    input_port = jack_port_register (client, "input",
+                    JACK_DEFAULT_AUDIO_TYPE,
+                    JackPortIsInput, 0);
 
     output_port = jack_port_register (client, "output",
 					  JACK_DEFAULT_AUDIO_TYPE,
 					  JackPortIsOutput, 0);
 
-	input_port = jack_port_register (client, "input",
-					  JACK_DEFAULT_AUDIO_TYPE,
-					  JackPortIsInput, 0);
-
-    if ((output_port == NULL) || (input_port == NULL)) {
+    if ((input_port == NULL) || (output_port == NULL)) {
 		fprintf(stderr, "no more JACK ports available\n");
 		exit (1);
 	}
@@ -45,9 +45,19 @@ int main() {
 		fprintf (stderr, "cannot activate client");
 		exit (1);
 	}
+
+    while(true) {
+        
+    }
 }
 
 int process (jack_nframes_t nframes, void *arg)
 {    
+    jack_default_audio_sample_t *input, *output;
+    input = (jack_default_audio_sample_t*)jack_port_get_buffer (input_port, nframes);
+	output = (jack_default_audio_sample_t*)jack_port_get_buffer (output_port, nframes);
+
+	memcpy(output, input, nframes*sizeof(jack_default_audio_sample_t));
+
 	return 0;      
 }
